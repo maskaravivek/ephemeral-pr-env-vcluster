@@ -1,0 +1,7 @@
+# provider-vcluster.yaml
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-vcluster
+spec:
+  package: xpkg.upbound.io/loft-sh/provider-vcluster:v0.1.1

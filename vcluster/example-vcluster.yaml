@@ -1,0 +1,6 @@
+apiVersion: vcluster.crossplane.io/v1alpha1
+kind: CompositeVCluster
+metadata:
+  name: example-vcluster
+spec:
+  clusterName: my-vcluster

@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pr-${PR_NUMBER}-app
+spec:
+  destination:
+    name: vcluster-${PR_NUMBER}
+    namespace: default
+  source:
+    repoURL: 'https://github.com/maskaravivek/echo-server-k8s-argocd-crossplane.git'
+    targetRevision: pull/${PR_NUMBER}/head
+    path: k8s/manifests
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
