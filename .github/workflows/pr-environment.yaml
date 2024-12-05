@@ -32,7 +32,7 @@ jobs:
 
       - name: Authenticate to Kubernetes cluster
         run: |
-          aws eks --region us-west-2 update-kubeconfig --name my-eks-cluster
+          aws eks --region us-west-2 update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
 
       - name: Create or Delete vCluster
         env:
@@ -101,7 +101,7 @@ jobs:
           spec:
             project: default
             source:
-              repoURL: 'https://github.com/your-username/your-repo.git'
+              repoURL: 'git@github.com:maskaravivek/echo-server-k8s-argocd-crossplane.git'
               targetRevision: pull/${PR_NUMBER}/head
               path: manifests
             destination:
