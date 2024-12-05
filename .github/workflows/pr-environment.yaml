@@ -19,9 +19,10 @@ jobs:
           curl -sLO https://get.helm.sh/helm-v3.9.0-linux-amd64.tar.gz
           tar -zxvf helm-v3.9.0-linux-amd64.tar.gz
           sudo mv linux-amd64/helm /usr/local/bin/
-          curl -Lo vcluster https://github.com/loft-sh/vcluster/releases/latest/download/vcluster-linux-amd64
-          chmod +x vcluster
-          sudo mv vcluster /usr/local/bin/
+          curl -Lo vcluster-bin https://github.com/loft-sh/vcluster/releases/latest/download/vcluster-linux-amd64
+          chmod +x vcluster-bin
+          sudo mv vcluster-bin /usr/local/bin/vcluster
+
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
