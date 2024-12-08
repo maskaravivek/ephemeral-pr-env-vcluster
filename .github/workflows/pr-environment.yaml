@@ -40,15 +40,15 @@ jobs:
         run: |
           if [ "${{ github.event.action }}" != "closed" ]; then
             # Create namespace for the vCluster
-            kubectl create namespace vcluster-${PR_NUMBER}
+            kubectl create namespace vcluster-pr-${PR_NUMBER}
 
             # Render the vCluster YAML template and apply it
             sed "s/{{PR_NUMBER}}/${PR_NUMBER}/g" vcluster/vcluster-template.yaml | kubectl apply -f -
           else
             # Delete the VCluster resource
-            kubectl delete vcluster vcluster-${PR_NUMBER} -n vcluster-${PR_NUMBER} --ignore-not-found
+            kubectl delete vcluster vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER} --ignore-not-found
             # Delete the namespace
-            kubectl delete namespace vcluster-${PR_NUMBER} --ignore-not-found
+            kubectl delete namespace vcluster-pr-${PR_NUMBER} --ignore-not-found
           fi
 
       - name: Wait for vCluster to be ready
@@ -56,7 +56,7 @@ jobs:
         env:
           PR_NUMBER: ${{ github.event.number }}
         run: |
-          kubectl wait --for=condition=Ready vcluster/vcluster-${PR_NUMBER} -n vcluster-${PR_NUMBER} --timeout=600s
+          kubectl wait --for=condition=Ready vcluster/vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER} --timeout=600s
 
       - name: Register vCluster with Argo CD
         if: ${{ github.event.action != 'closed' }}
@@ -64,7 +64,7 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
         run: |
           argocd login ${{ secrets.ARGOCD_SERVER }} --insecure --username admin --password ${{ secrets.ARGOCD_PASSWORD }}
-          argocd cluster add --name vcluster-${PR_NUMBER} --kubeconfig ./vcluster-${PR_NUMBER}-kubeconfig --insecure
+          argocd cluster add --name vcluster-pr-${PR_NUMBER} --kubeconfig ./vcluster-pr-${PR_NUMBER}-kubeconfig --insecure
 
       - name: Create Argo CD Application
         if: ${{ github.event.action != 'closed' }}
