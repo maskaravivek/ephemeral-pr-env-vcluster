@@ -56,7 +56,37 @@ jobs:
         env:
           PR_NUMBER: ${{ github.event.number }}
         run: |
-          kubectl wait --for=condition=Ready vcluster/vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER} --timeout=600s
+          # Check if vCluster resource exists
+          kubectl get vcluster vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER} --no-headers || {
+            echo "vCluster resource not found. Exiting.";
+            exit 1;
+          }
+
+          # Wait until the vCluster is ready
+          kubectl wait --for=condition=Ready vcluster/vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER} --timeout=900s
+
+      - name: Debug vCluster Creation
+        if: ${{ failure() && github.event.action != 'closed' }}
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          kubectl describe vcluster vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER}
+          kubectl get events -n vcluster-pr-${PR_NUMBER} --sort-by='.metadata.creationTimestamp'
+
+      - name: Debug vCluster Pods
+        if: ${{ failure() && github.event.action != 'closed' }}
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          kubectl get pods -n vcluster-pr-${PR_NUMBER} -o wide
+          kubectl describe pods -n vcluster-pr-${PR_NUMBER}
+
+      - name: Fetch vCluster Logs
+        if: ${{ failure() && github.event.action != 'closed' }}
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          kubectl logs -n vcluster-pr-${PR_NUMBER} -l app.kubernetes.io/name=vcluster
 
       - name: Register vCluster with Argo CD
         if: ${{ github.event.action != 'closed' }}
