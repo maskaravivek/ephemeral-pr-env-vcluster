@@ -23,7 +23,6 @@ jobs:
           chmod +x vcluster-bin
           sudo mv vcluster-bin /usr/local/bin/vcluster
 
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -43,16 +42,16 @@ jobs:
             # Create namespace for the vCluster
             kubectl create namespace vcluster-${PR_NUMBER}
             # Create the VCluster resource
-            cat <<-EOF | kubectl apply -f -
-              apiVersion: vcluster.crossplane.io/v1alpha1
-              kind: VCluster
-              metadata:
-                name: vcluster-${PR_NUMBER}
-                namespace: vcluster-${PR_NUMBER}
-              spec:
-                compositionRef:
-                  name: vcluster-composition
-                clusterName: "${PR_NUMBER}"
+            cat <<EOF | kubectl apply -f -
+            apiVersion: vcluster.crossplane.io/v1alpha1
+            kind: VCluster
+            metadata:
+              name: vcluster-${PR_NUMBER}
+              namespace: vcluster-${PR_NUMBER}
+            spec:
+              compositionRef:
+                name: vcluster-composition
+              clusterName: "${PR_NUMBER}"
             EOF
           else
             # Delete the VCluster resource
@@ -66,7 +65,6 @@ jobs:
         env:
           PR_NUMBER: ${{ github.event.number }}
         run: |
-          # Wait until the vCluster is ready
           kubectl wait --for=condition=Ready vcluster/vcluster-${PR_NUMBER} -n vcluster-${PR_NUMBER} --timeout=600s
 
       - name: Connect to the vCluster
@@ -74,7 +72,6 @@ jobs:
         env:
           PR_NUMBER: ${{ github.event.number }}
         run: |
-          # Connect to the vCluster and generate kubeconfig
           vcluster connect vcluster-${PR_NUMBER} -n vcluster-${PR_NUMBER} --update-current=false --kube-config vcluster-${PR_NUMBER}-kubeconfig --detach
 
       - name: Register vCluster with Argo CD
@@ -82,9 +79,7 @@ jobs:
         env:
           PR_NUMBER: ${{ github.event.number }}
         run: |
-          # Login to Argo CD
           argocd login ${{ secrets.ARGOCD_SERVER }} --insecure --username admin --password ${{ secrets.ARGOCD_PASSWORD }}
-          # Add the vCluster to Argo CD
           argocd cluster add --name vcluster-${PR_NUMBER} --kubeconfig ./vcluster-${PR_NUMBER}-kubeconfig --insecure
 
       - name: Create Argo CD Application
@@ -92,9 +87,8 @@ jobs:
         env:
           PR_NUMBER: ${{ github.event.number }}
         run: |
-          # Create an Argo CD Application manifest
           cat <<EOF | kubectl apply -f -
-          apiVersion: argoproj.io/v1alpha1
+          apiVersion: argoproj.io/v1alpha1š
           kind: Application
           metadata:
             name: pr-${PR_NUMBER}-app
@@ -133,11 +127,8 @@ jobs:
         env:
           PR_NUMBER: ${{ github.event.number }}
         run: |
-          # Login to Argo CD
           argocd login ${{ secrets.ARGOCD_SERVER }} --insecure --username admin --password ${{ secrets.ARGOCD_PASSWORD }}
-          # Delete the Argo CD Application
           argocd app delete pr-${PR_NUMBER}-app --yes
-          # Remove the cluster from Argo CD
           argocd cluster rm vcluster-${PR_NUMBER} --yes
 
       - name: Clean up kubeconfig
