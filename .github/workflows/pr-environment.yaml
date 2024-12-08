@@ -43,16 +43,16 @@ jobs:
             # Create namespace for the vCluster
             kubectl create namespace vcluster-${PR_NUMBER}
             # Create the VCluster resource
-            cat <<EOF | kubectl apply -f -
-            apiVersion: vcluster.crossplane.io/v1alpha1
-            kind: VCluster
-            metadata:
-              name: vcluster-${PR_NUMBER}
-              namespace: vcluster-${PR_NUMBER}
-            spec:
-              compositionRef:
-                name: vcluster-composition
-              clusterName: "${PR_NUMBER}"
+            cat <<-EOF | kubectl apply -f -
+              apiVersion: vcluster.crossplane.io/v1alpha1
+              kind: VCluster
+              metadata:
+                name: vcluster-${PR_NUMBER}
+                namespace: vcluster-${PR_NUMBER}
+              spec:
+                compositionRef:
+                  name: vcluster-composition
+                clusterName: "${PR_NUMBER}"
             EOF
           else
             # Delete the VCluster resource
