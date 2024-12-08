@@ -41,18 +41,9 @@ jobs:
           if [ "${{ github.event.action }}" != "closed" ]; then
             # Create namespace for the vCluster
             kubectl create namespace vcluster-${PR_NUMBER}
-            # Create the VCluster resource
-            cat <<EOF | kubectl apply -f -
-            apiVersion: vcluster.crossplane.io/v1alpha1
-            kind: VCluster
-            metadata:
-              name: vcluster-${PR_NUMBER}
-              namespace: vcluster-${PR_NUMBER}
-            spec:
-              compositionRef:
-                name: vcluster-composition
-              clusterName: "${PR_NUMBER}"
-            EOF
+
+            # Render the vCluster YAML template and apply it
+            sed "s/{{PR_NUMBER}}/${PR_NUMBER}/g" k8s/vcluster-template.yaml | kubectl apply -f -
           else
             # Delete the VCluster resource
             kubectl delete vcluster vcluster-${PR_NUMBER} -n vcluster-${PR_NUMBER} --ignore-not-found
@@ -67,13 +58,6 @@ jobs:
         run: |
           kubectl wait --for=condition=Ready vcluster/vcluster-${PR_NUMBER} -n vcluster-${PR_NUMBER} --timeout=600s
 
-      - name: Connect to the vCluster
-        if: ${{ github.event.action != 'closed' }}
-        env:
-          PR_NUMBER: ${{ github.event.number }}
-        run: |
-          vcluster connect vcluster-${PR_NUMBER} -n vcluster-${PR_NUMBER} --update-current=false --kube-config vcluster-${PR_NUMBER}-kubeconfig --detach
-
       - name: Register vCluster with Argo CD
         if: ${{ github.event.action != 'closed' }}
         env:
@@ -87,50 +71,4 @@ jobs:
         env:
           PR_NUMBER: ${{ github.event.number }}
         run: |
-          cat <<EOF | kubectl apply -f -
-          apiVersion: argoproj.io/v1alpha1š
-          kind: Application
-          metadata:
-            name: pr-${PR_NUMBER}-app
-            namespace: argocd
-          spec:
-            project: default
-            source:
-              repoURL: 'git@github.com:maskaravivek/echo-server-k8s-argocd-crossplane.git'
-              targetRevision: pull/${PR_NUMBER}/head
-              path: manifests
-            destination:
-              name: vcluster-${PR_NUMBER}
-              namespace: default
-            syncPolicy:
-              automated:
-                prune: true
-                selfHeal: true
-          EOF
-
-      - name: Post Deployment Comment
-        if: ${{ github.event.action != 'closed' }}
-        env:
-          PR_NUMBER: ${{ github.event.number }}
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: ${{ github.event.number }},
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `Your PR has been deployed! Access your environment at http://pr-${{ github.event.number }}.yourdomain.com`
-            })
-
-      - name: Clean up Argo CD resources
-        if: ${{ github.event.action == 'closed' }}
-        env:
-          PR_NUMBER: ${{ github.event.number }}
-        run: |
-          argocd login ${{ secrets.ARGOCD_SERVER }} --insecure --username admin --password ${{ secrets.ARGOCD_PASSWORD }}
-          argocd app delete pr-${PR_NUMBER}-app --yes
-          argocd cluster rm vcluster-${PR_NUMBER} --yes
-
-      - name: Clean up kubeconfig
-        run: |
-          rm -f vcluster-${PR_NUMBER}-kubeconfig
+          sed "s/{{PR_NUMBER}}/${PR_NUMBER}/g" k8s/argocd-application-template.yaml | kub
