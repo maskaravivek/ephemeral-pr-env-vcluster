@@ -43,7 +43,7 @@ jobs:
             kubectl create namespace vcluster-${PR_NUMBER}
 
             # Render the vCluster YAML template and apply it
-            sed "s/{{PR_NUMBER}}/${PR_NUMBER}/g" k8s/vcluster-template.yaml | kubectl apply -f -
+            sed "s/{{PR_NUMBER}}/${PR_NUMBER}/g" vcluster/vcluster-template.yaml | kubectl apply -f -
           else
             # Delete the VCluster resource
             kubectl delete vcluster vcluster-${PR_NUMBER} -n vcluster-${PR_NUMBER} --ignore-not-found
@@ -71,4 +71,4 @@ jobs:
         env:
           PR_NUMBER: ${{ github.event.number }}
         run: |
-          sed "s/{{PR_NUMBER}}/${PR_NUMBER}/g" k8s/argocd-application-template.yaml | kub
+          sed "s/{{PR_NUMBER}}/${PR_NUMBER}/g" argocd/argocd-application-template.yaml | kub
