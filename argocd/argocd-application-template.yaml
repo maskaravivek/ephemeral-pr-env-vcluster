@@ -10,7 +10,7 @@ spec:
     targetRevision: pull/{{PR_NUMBER}}/head
     path: manifests
   destination:
-    name: vcluster-{{PR_NUMBER}}
+    name: vcluster-pr-{{PR_NUMBER}}
     namespace: default
   syncPolicy:
     automated:
