@@ -2,7 +2,9 @@ name: PR Environment Management
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, closed]
+    types: [labeled]
+    branches:
+      - main
 
 jobs:
   manage-environment:
