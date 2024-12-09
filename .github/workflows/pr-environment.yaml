@@ -3,12 +3,18 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, closed]
 
+permissions:
+  contents: write  # Ensure we have permissions to push
+
 jobs:
   pr-environment:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+      with:
+        ref: ${{ github.head_ref }}     # Check out the PR branch
+        persist-credentials: true       # Keep credentials for pushing back
 
     - name: Set up kubectl
       uses: azure/setup-kubectl@v3
@@ -16,7 +22,7 @@ jobs:
         version: 'latest'
 
     - name: Generate PR environment manifest
-      if: github.event.action == 'opened' || github.event.action == 'reopened'
+      if: ${{ github.event.action == 'opened' || github.event.action == 'reopened' }}
       run: |
         PR_NUMBER=${{ github.event.pull_request.number }}
         cat <<EOF > environments/pr/pr-${PR_NUMBER}.yaml
@@ -33,10 +39,10 @@ jobs:
         git config user.email github-actions@github.com
         git add environments/pr/pr-${PR_NUMBER}.yaml
         git commit -m "Add PR environment for #${PR_NUMBER}"
-        git push
+        git push origin HEAD:${{ github.head_ref }}  # Push changes back to the PR branch
 
     - name: Remove PR environment manifest
-      if: github.event.action == 'closed'
+      if: ${{ github.event.action == 'closed' }}
       run: |
         PR_NUMBER=${{ github.event.pull_request.number }}
         rm -f environments/pr/pr-${PR_NUMBER}.yaml
@@ -44,9 +50,10 @@ jobs:
         git config user.email github-actions@github.com
         git add environments/pr/pr-${PR_NUMBER}.yaml || true
         git commit -m "Remove PR environment for #${PR_NUMBER}" || true
-        git push || true
+        git push origin HEAD:${{ github.head_ref }} || true
+
     - name: Post comment with environment URL
-      if: github.event.action == 'opened' || github.event.action == 'reopened'
+      if: ${{ github.event.action == 'opened' || github.event.action == 'reopened' }}
       run: |
         PR_NUMBER=${{ github.event.pull_request.number }}
         ENV_URL=$(kubectl get ingress -n vcluster-pr-${PR_NUMBER} my-app -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
