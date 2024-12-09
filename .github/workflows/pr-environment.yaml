@@ -6,6 +6,11 @@ on:
     branches:
       - main
 
+env:
+  REPO_NAME: ${{ github.event.repository.name }}
+  PR_NUMBER: ${{ github.event.pull_request.number }}
+  PR_LINK: ${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.pull_request.number }}
+
 jobs:
   manage-environment:
     runs-on: ubuntu-latest
@@ -48,7 +53,7 @@ jobs:
             --pull-request ${PR_NUMBER} \
             --template preview-template \
             --link "GitHub PR=${PR_LINK}" \
-            --link "Preview=https://${REPO_NAME}-pr-${PR_NUMBER}-vcluster-pro.us.demo.dev" \
+            --link "Preview=https://${REPO_NAME}-pr-${PR_NUMBER}-samplecrossplaceargocdgithubpr.vcluster.cloud" \
             --link "Argo CD=https://a149bb6f0f00648a3b101966d0e1bdad-1008309122.us-west-2.elb.amazonaws.com/applications/argocd/${REPO_NAME}-${{ github.event.pull_request.head.ref }}-pr${PR_NUMBER}?view=tree"
 
       # - name: Create or Delete vCluster
