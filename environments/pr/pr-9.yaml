@@ -1,0 +1,8 @@
+apiVersion: example.org/v1alpha1
+kind: PREnvironment
+metadata:
+  name: pr-9
+spec:
+  parameters:
+    name: vcluster-pr-9
+    chartVersion: "0.15.0"
