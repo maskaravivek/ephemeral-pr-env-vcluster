@@ -49,7 +49,7 @@ jobs:
       - name: Create PR preview environment
         run: |
           # This creates a vcluster-based ephemeral environment tied to the PR
-          vcluster pro create ${REPO_NAME}-pr-${PR_NUMBER} --project echo-server-project --recreate --template preview-template --connect --expose
+          vcluster create ${REPO_NAME}-pr-${PR_NUMBER} --project echo-server-project --recreate --template preview-template --connect --expose
 
       # - name: Create or Delete vCluster
       #   env:
