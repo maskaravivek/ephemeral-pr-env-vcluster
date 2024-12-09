@@ -18,17 +18,17 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Set up Kubernetes tools
-        run: |
-          curl -sLO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-          curl -sLO https://get.helm.sh/helm-v3.9.0-linux-amd64.tar.gz
-          tar -zxvf helm-v3.9.0-linux-amd64.tar.gz
-          sudo mv linux-amd64/helm /usr/local/bin/
-          curl -Lo vcluster-bin https://github.com/loft-sh/vcluster/releases/latest/download/vcluster-linux-amd64
-          chmod +x vcluster-bin
-          sudo mv vcluster-bin /usr/local/bin/vcluster
+      # - name: Set up Kubernetes tools
+      #   run: |
+      #     curl -sLO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      #     chmod +x kubectl
+      #     sudo mv kubectl /usr/local/bin/
+      #     curl -sLO https://get.helm.sh/helm-v3.9.0-linux-amd64.tar.gz
+      #     tar -zxvf helm-v3.9.0-linux-amd64.tar.gz
+      #     sudo mv linux-amd64/helm /usr/local/bin/
+      #     curl -Lo vcluster-bin https://github.com/loft-sh/vcluster/releases/latest/download/vcluster-linux-amd64
+      #     chmod +x vcluster-bin
+      #     sudo mv vcluster-bin /usr/local/bin/vcluster
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -41,20 +41,37 @@ jobs:
         run: |
           aws eks --region us-west-2 update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
       
-      - name: Authenticate to vcluster platform
-        # Use your own credentials or secrets; this is just an example
-        run: |
-          vcluster platform login https://samplecrossplaceargocdgithubpr.vcluster.cloud/ --access-key ${{ secrets.VCLUSTER_PLATFORM_ACCESS_KEY }}
+      # - name: Authenticate to vcluster platform
+      #   # Use your own credentials or secrets; this is just an example
+      #   run: |
+      #     vcluster platform login https://samplecrossplaceargocdgithubpr.vcluster.cloud/ --access-key ${{ secrets.VCLUSTER_PLATFORM_ACCESS_KEY }}
+
+      - name: Install vCluster CLI
+        uses: loft-sh/setup-vcluster@main
+      - name: Install vCluster CLI
+        uses: loft-sh/setup-loft@v2
+        with:
+          version: v3.0.0
+          url: https://samplecrossplaceargocdgithubpr.vcluster.cloud
+          # Specify your vCluster Platform access key here
+          access-key: ${{ secrets.VCLUSTER_PLATFORM_ACCESS_KEY }}
+          # Optional if your vCluster Platform domain certificate is insecure
+          #insecure: true
 
       - name: Create PR preview environment
         run: |
           # This creates a vcluster-based ephemeral environment tied to the PR
-          vcluster platform environment create ${REPO_NAME}-pr-${PR_NUMBER} \
-            --pull-request ${PR_NUMBER} \
-            --template preview-template \
-            --link "GitHub PR=${PR_LINK}" \
-            --link "Preview=https://${REPO_NAME}-pr-${PR_NUMBER}-samplecrossplaceargocdgithubpr.vcluster.cloud" \
-            --link "Argo CD=https://a149bb6f0f00648a3b101966d0e1bdad-1008309122.us-west-2.elb.amazonaws.com/applications/argocd/${REPO_NAME}-${{ github.event.pull_request.head.ref }}-pr${PR_NUMBER}?view=tree"
+          
+          INGRESS_HOST=loft-preview-${{ github.event.pull_request.number }}-samplecrossplaceargocdgithubpr.vcluster.cloud
+
+          vcluster create ${REPO_NAME}-pr-${PR_NUMBER} --project echo-server-project --recreate --template preview-template --connect --expose
+
+          helm repo add argo https://argoproj.github.io/argo-helm
+          helm install argocd argo/argo-cd --version 5.16.3 \
+              --create-namespace \
+              -n argocd \
+              --set server.ingress.enabled=true \
+              --set server.ingress.hosts={$INGRESS_HOST}
 
       # - name: Create or Delete vCluster
       #   env:
