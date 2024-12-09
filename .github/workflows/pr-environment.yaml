@@ -1,61 +1,106 @@
-name: PR Environments
+name: PR Environment Management
+
 on:
   pull_request:
-    types: [opened, reopened, synchronize, closed]
-
-permissions:
-  contents: write  # Ensure we have permissions to push
+    types: [labeled]
+    branches:
+      - main
 
 jobs:
-  pr-environment:
+  manage-environment:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        ref: ${{ github.head_ref }}     # Check out the PR branch
-        persist-credentials: true       # Keep credentials for pushing back
+      - name: Check out code
+        uses: actions/checkout@v2
 
-    - name: Set up kubectl
-      uses: azure/setup-kubectl@v3
-      with:
-        version: 'latest'
+      - name: Set up Kubernetes tools
+        run: |
+          curl -sLO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+          curl -sLO https://get.helm.sh/helm-v3.9.0-linux-amd64.tar.gz
+          tar -zxvf helm-v3.9.0-linux-amd64.tar.gz
+          sudo mv linux-amd64/helm /usr/local/bin/
+          curl -Lo vcluster-bin https://github.com/loft-sh/vcluster/releases/latest/download/vcluster-linux-amd64
+          chmod +x vcluster-bin
+          sudo mv vcluster-bin /usr/local/bin/vcluster
 
-    - name: Generate PR environment manifest
-      if: ${{ github.event.action == 'opened' || github.event.action == 'reopened' }}
-      run: |
-        PR_NUMBER=${{ github.event.pull_request.number }}
-        cat <<EOF > environments/pr/pr-${PR_NUMBER}.yaml
-        apiVersion: example.org/v1alpha1
-        kind: PREnvironment
-        metadata:
-          name: pr-${PR_NUMBER}
-        spec:
-          parameters:
-            name: vcluster-pr-${PR_NUMBER}
-            chartVersion: "0.15.0"
-        EOF
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git add environments/pr/pr-${PR_NUMBER}.yaml
-        git commit -m "Add PR environment for #${PR_NUMBER}"
-        git push origin HEAD:${{ github.head_ref }}  # Push changes back to the PR branch
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
 
-    - name: Remove PR environment manifest
-      if: ${{ github.event.action == 'closed' }}
-      run: |
-        PR_NUMBER=${{ github.event.pull_request.number }}
-        rm -f environments/pr/pr-${PR_NUMBER}.yaml
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git add environments/pr/pr-${PR_NUMBER}.yaml || true
-        git commit -m "Remove PR environment for #${PR_NUMBER}" || true
-        git push origin HEAD:${{ github.head_ref }} || true
+      - name: Authenticate to Kubernetes cluster
+        run: |
+          aws eks --region us-west-2 update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
 
-    - name: Post comment with environment URL
-      if: ${{ github.event.action == 'opened' || github.event.action == 'reopened' }}
-      run: |
-        PR_NUMBER=${{ github.event.pull_request.number }}
-        ENV_URL=$(kubectl get ingress -n vcluster-pr-${PR_NUMBER} my-app -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-        COMMENT="Ephemeral environment ready! Access it at: http://${ENV_URL}"
-        gh pr comment $PR_NUMBER --body "$COMMENT"
+      - name: Create or Delete vCluster
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          if [ "${{ github.event.action }}" != "closed" ]; then
+            # Create namespace for the vCluster
+            kubectl create namespace vcluster-pr-${PR_NUMBER}
+
+            # Render the vCluster YAML template and apply it
+            sed "s/{{PR_NUMBER}}/${PR_NUMBER}/g" vcluster/vcluster-template.yaml | kubectl apply -f -
+          else
+            # Delete the VCluster resource
+            kubectl delete vcluster vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER} --ignore-not-found
+            # Delete the namespace
+            kubectl delete namespace vcluster-pr-${PR_NUMBER} --ignore-not-found
+          fi
+
+      - name: Wait for vCluster to be ready
+        if: ${{ github.event.action != 'closed' }}
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          # Check if vCluster resource exists
+          kubectl get vcluster vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER} --no-headers || {
+            echo "vCluster resource not found. Exiting.";
+            exit 1;
+          }
+
+          # Wait until the vCluster is ready
+          kubectl wait --for=condition=Ready vcluster/vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER} --timeout=900s
+
+      - name: Debug vCluster Creation
+        if: ${{ failure() && github.event.action != 'closed' }}
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          kubectl describe vcluster vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER}
+          kubectl get events -n vcluster-pr-${PR_NUMBER} --sort-by='.metadata.creationTimestamp'
+
+      - name: Debug vCluster Pods
+        if: ${{ failure() && github.event.action != 'closed' }}
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          kubectl get pods -n vcluster-pr-${PR_NUMBER} -o wide
+          kubectl describe pods -n vcluster-pr-${PR_NUMBER}
+
+      - name: Fetch vCluster Logs
+        if: ${{ failure() && github.event.action != 'closed' }}
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          kubectl logs -n vcluster-pr-${PR_NUMBER} -l app.kubernetes.io/name=vcluster
+
+      - name: Register vCluster with Argo CD
+        if: ${{ github.event.action != 'closed' }}
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          argocd login ${{ secrets.ARGOCD_SERVER }} --insecure --username admin --password ${{ secrets.ARGOCD_PASSWORD }}
+          argocd cluster add --name vcluster-pr-${PR_NUMBER} --kubeconfig ./vcluster-pr-${PR_NUMBER}-kubeconfig --insecure
+
+      - name: Create Argo CD Application
+        if: ${{ github.event.action != 'closed' }}
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          sed "s/{{PR_NUMBER}}/${PR_NUMBER}/g" argocd/argocd-application-template.yaml | kub
