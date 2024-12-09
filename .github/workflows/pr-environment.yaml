@@ -35,72 +35,87 @@ jobs:
       - name: Authenticate to Kubernetes cluster
         run: |
           aws eks --region us-west-2 update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }}
-
-      - name: Create or Delete vCluster
-        env:
-          PR_NUMBER: ${{ github.event.number }}
+      
+      - name: Authenticate to vcluster platform
+        # Use your own credentials or secrets; this is just an example
         run: |
-          if [ "${{ github.event.action }}" != "closed" ]; then
-            # Create namespace for the vCluster
-            kubectl create namespace vcluster-pr-${PR_NUMBER}
+          vcluster platform login https://samplecrossplaceargocdgithubpr.vcluster.cloud/ --access-key ${{ secrets.VCLUSTER_PLATFORM_ACCESS_KEY }}
 
-            # Render the vCluster YAML template and apply it
-            sed "s/{{PR_NUMBER}}/${PR_NUMBER}/g" vcluster/vcluster-template.yaml | kubectl apply -f -
-          else
-            # Delete the VCluster resource
-            kubectl delete vcluster vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER} --ignore-not-found
-            # Delete the namespace
-            kubectl delete namespace vcluster-pr-${PR_NUMBER} --ignore-not-found
-          fi
-
-      - name: Wait for vCluster to be ready
-        if: ${{ github.event.action != 'closed' }}
-        env:
-          PR_NUMBER: ${{ github.event.number }}
+      - name: Create PR preview environment
         run: |
-          # Check if vCluster resource exists
-          kubectl get vcluster vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER} --no-headers || {
-            echo "vCluster resource not found. Exiting.";
-            exit 1;
-          }
+          # This creates a vcluster-based ephemeral environment tied to the PR
+          vcluster platform environment create ${REPO_NAME}-pr-${PR_NUMBER} \
+            --pull-request ${PR_NUMBER} \
+            --template preview-template \
+            --link "GitHub PR=${PR_LINK}" \
+            --link "Preview=https://${REPO_NAME}-pr-${PR_NUMBER}-vcluster-pro.us.demo.dev" \
+            --link "Argo CD=https://a149bb6f0f00648a3b101966d0e1bdad-1008309122.us-west-2.elb.amazonaws.com/applications/argocd/${REPO_NAME}-${{ github.event.pull_request.head.ref }}-pr${PR_NUMBER}?view=tree"
 
-          # Wait until the vCluster is ready
-          kubectl wait --for=condition=Ready vcluster/vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER} --timeout=900s
+      # - name: Create or Delete vCluster
+      #   env:
+      #     PR_NUMBER: ${{ github.event.number }}
+      #   run: |
+      #     if [ "${{ github.event.action }}" != "closed" ]; then
+      #       # Create namespace for the vCluster
+      #       kubectl create namespace vcluster-pr-${PR_NUMBER}
 
-      - name: Debug vCluster Creation
-        if: ${{ failure() && github.event.action != 'closed' }}
-        env:
-          PR_NUMBER: ${{ github.event.number }}
-        run: |
-          kubectl describe vcluster vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER}
-          kubectl get events -n vcluster-pr-${PR_NUMBER} --sort-by='.metadata.creationTimestamp'
+      #       # Render the vCluster YAML template and apply it
+      #       sed "s/{{PR_NUMBER}}/${PR_NUMBER}/g" vcluster/vcluster-template.yaml | kubectl apply -f -
+      #     else
+      #       # Delete the VCluster resource
+      #       kubectl delete vcluster vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER} --ignore-not-found
+      #       # Delete the namespace
+      #       kubectl delete namespace vcluster-pr-${PR_NUMBER} --ignore-not-found
+      #     fi
 
-      - name: Debug vCluster Pods
-        if: ${{ failure() && github.event.action != 'closed' }}
-        env:
-          PR_NUMBER: ${{ github.event.number }}
-        run: |
-          kubectl get pods -n vcluster-pr-${PR_NUMBER} -o wide
-          kubectl describe pods -n vcluster-pr-${PR_NUMBER}
+      # - name: Wait for vCluster to be ready
+      #   if: ${{ github.event.action != 'closed' }}
+      #   env:
+      #     PR_NUMBER: ${{ github.event.number }}
+      #   run: |
+      #     # Check if vCluster resource exists
+      #     kubectl get vcluster vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER} --no-headers || {
+      #       echo "vCluster resource not found. Exiting.";
+      #       exit 1;
+      #     }
 
-      - name: Fetch vCluster Logs
-        if: ${{ failure() && github.event.action != 'closed' }}
-        env:
-          PR_NUMBER: ${{ github.event.number }}
-        run: |
-          kubectl logs -n vcluster-pr-${PR_NUMBER} -l app.kubernetes.io/name=vcluster
+      #     # Wait until the vCluster is ready
+      #     kubectl wait --for=condition=Ready vcluster/vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER} --timeout=900s
 
-      - name: Register vCluster with Argo CD
-        if: ${{ github.event.action != 'closed' }}
-        env:
-          PR_NUMBER: ${{ github.event.number }}
-        run: |
-          argocd login ${{ secrets.ARGOCD_SERVER }} --insecure --username admin --password ${{ secrets.ARGOCD_PASSWORD }}
-          argocd cluster add --name vcluster-pr-${PR_NUMBER} --kubeconfig ./vcluster-pr-${PR_NUMBER}-kubeconfig --insecure
+      # - name: Debug vCluster Creation
+      #   if: ${{ failure() && github.event.action != 'closed' }}
+      #   env:
+      #     PR_NUMBER: ${{ github.event.number }}
+      #   run: |
+      #     kubectl describe vcluster vcluster-pr-${PR_NUMBER} -n vcluster-pr-${PR_NUMBER}
+      #     kubectl get events -n vcluster-pr-${PR_NUMBER} --sort-by='.metadata.creationTimestamp'
 
-      - name: Create Argo CD Application
-        if: ${{ github.event.action != 'closed' }}
-        env:
-          PR_NUMBER: ${{ github.event.number }}
-        run: |
-          sed "s/{{PR_NUMBER}}/${PR_NUMBER}/g" argocd/argocd-application-template.yaml | kub
+      # - name: Debug vCluster Pods
+      #   if: ${{ failure() && github.event.action != 'closed' }}
+      #   env:
+      #     PR_NUMBER: ${{ github.event.number }}
+      #   run: |
+      #     kubectl get pods -n vcluster-pr-${PR_NUMBER} -o wide
+      #     kubectl describe pods -n vcluster-pr-${PR_NUMBER}
+
+      # - name: Fetch vCluster Logs
+      #   if: ${{ failure() && github.event.action != 'closed' }}
+      #   env:
+      #     PR_NUMBER: ${{ github.event.number }}
+      #   run: |
+      #     kubectl logs -n vcluster-pr-${PR_NUMBER} -l app.kubernetes.io/name=vcluster
+
+      # - name: Register vCluster with Argo CD
+      #   if: ${{ github.event.action != 'closed' }}
+      #   env:
+      #     PR_NUMBER: ${{ github.event.number }}
+      #   run: |
+      #     argocd login ${{ secrets.ARGOCD_SERVER }} --insecure --username admin --password ${{ secrets.ARGOCD_PASSWORD }}
+      #     argocd cluster add --name vcluster-pr-${PR_NUMBER} --kubeconfig ./vcluster-pr-${PR_NUMBER}-kubeconfig --insecure
+
+      # - name: Create Argo CD Application
+      #   if: ${{ github.event.action != 'closed' }}
+      #   env:
+      #     PR_NUMBER: ${{ github.event.number }}
+      #   run: |
+      #     sed "s/{{PR_NUMBER}}/${PR_NUMBER}/g" argocd/argocd-application-template.yaml | kub
