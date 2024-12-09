@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: pr-environments
+  namespace: argocd
+spec:
+  description: Project for PR-based ephemeral environments
+  sourceRepos:
+    - 'https://github.com/maskaravivek/echo-server-k8s-argocd-crossplane.git'
+  destinations:
+    - namespace: '*'
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
