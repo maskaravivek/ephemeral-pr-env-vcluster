@@ -1,0 +1,9 @@
+apiVersion: vcluster.crossplane.io/v1alpha1
+kind: VCluster
+metadata:
+  name: vcluster-pr-{{PR_NUMBER}}
+  namespace: vcluster-pr-{{PR_NUMBER}}
+spec:
+  compositionRef:
+    name: vcluster-composition
+  clusterName: "{{PR_NUMBER}}"

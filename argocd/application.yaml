@@ -4,7 +4,7 @@ metadata:
   name: pr-${PR_NUMBER}-app
 spec:
   destination:
-    name: vcluster-${PR_NUMBER}
+    name: vcluster-pr-${PR_NUMBER}
     namespace: default
   source:
     repoURL: 'https://github.com/maskaravivek/echo-server-k8s-argocd-crossplane.git'
