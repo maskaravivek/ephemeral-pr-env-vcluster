@@ -1,9 +1,0 @@
-# pr-environment-claim.yaml
-apiVersion: example.org/v1alpha1
-kind: PREnvironment
-metadata:
-  name: pr-123
-spec:
-  parameters:
-    name: vcluster-pr-123
-    chartVersion: "0.15.0"

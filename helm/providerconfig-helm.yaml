@@ -1,8 +1,0 @@
-# providerconfig-helm.yaml
-apiVersion: helm.crossplane.io/v1alpha1
-kind: ProviderConfig
-metadata:
-  name: default-helm
-spec:
-  credentials:
-    source: None

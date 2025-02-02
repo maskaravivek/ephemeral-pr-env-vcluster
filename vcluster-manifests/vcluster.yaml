@@ -1,9 +1,0 @@
-sync:
-  toHost:
-    ingresses:
-      enabled: true
-
-controlPlane:
-  coredns:
-    enabled: true
-    embedded: true
