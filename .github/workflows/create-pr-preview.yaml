@@ -3,17 +3,17 @@ name: create-pr-preview
 # on merge to main from pull request (recommended)
 on:
   pull_request:
-    types: [opened, reopened, synchronize]
-    # types: [labeled]
-    branches:
-      - main
+    # types: [opened, reopened, synchronize]
+    # # types: [labeled]
+    # branches:
+    #   - main
 env:
   REPO_NAME: ${{ github.event.repository.name }}
   PR_LINK: ${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.pull_request.number }}
 
 jobs:
   create-preview-env:
-    if: ${{ github.event.label.name == 'preview' }}
+    # if: ${{ github.event.label.name == 'preview' }}
     runs-on: ubuntu-22.04
     permissions:
       id-token: write
