@@ -64,8 +64,6 @@ jobs:
         env:
           REPO_TOKEN: ${{ secrets.GHA_TOKEN }}
         run: |
-          git remote set-url origin https://x-access-token:${REPO_TOKEN}@github.com/maskaravivek/ephemeral-pr-env-vcluster.git
-    
           PR_NUMBER="${{ github.event.number }}"
           cat <<EOF > gitops/ephemeral/ephemeralvcluster-pr${PR_NUMBER}.yaml
           apiVersion: example.org/v1alpha1
@@ -80,7 +78,14 @@ jobs:
           # commit & push
           git add .
           git commit -m "Create ephemeralvcluster resource for PR #${PR_NUMBER}"
-          git push origin HEAD
+      
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Create ephemeralvcluster resource for PR #${{ github.event.number }}"
+          commit_options: '--no-verify'
+          repository: .
+          branch: ${{ github.head_ref }}
+          token: ${{ secrets.GHA_TOKEN }}
 
       - name: Post comment with vCluster URL
         # This step queries the newly created vCluster LoadBalancer or Ingress, then posts a link in the PR.
