@@ -48,27 +48,57 @@ jobs:
 
       - id: create-preview-vcluster
         run: |
-          vcluster create $REPO_NAME-pr-${{ github.event.pull_request.number }} 
+          vcluster create $REPO_NAME-pr-${{ github.event.pull_request.number }} \
             --template preview-template \
             --link "GitHub PR=$PR_LINK" \
             --link "Preview=https://${{ env.REPO_NAME}}-pr-${{ github.event.pull_request.number }}-vcluster-pro.us.demo.dev" \
             --link "Argo CD=https://34.94.198.226/applications/argocd/${{ env.REPO_NAME}}-${{ github.event.pull_request.head.ref }}-pr${{ github.event.pull_request.number }}?view=tree"
 
-      - id: trigger-argocd-appset
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Create Ephemeral Env Resource
         run: |
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "preview-cluster-ready"
+          PR_NUMBER="${{ github.event.number }}"
+          cat <<EOF > gitops/ephemeral/ephemeralvcluster-pr${PR_NUMBER}.yaml
+          apiVersion: example.org/v1alpha1
+          kind: EphemeralVCluster
+          metadata:
+            name: pr${PR_NUMBER}
+          spec:
+            prNumber: "${PR_NUMBER}"
+            # add more fields as needed
+          EOF
 
-      - id: add-pr-link
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          number: ${{ github.event.pull_request.number }}
-          header: release
-          message: |
-            [Preview environment app link](https://${{ env.REPO_NAME}}-pr-${{ github.event.pull_request.number }}-vcluster-pro.us.demo.dev)
+          # commit & push
+          git add .
+          git commit -m "Create ephemeralvcluster resource for PR #${PR_NUMBER}"
+          git push origin HEAD
+
+      - name: Post comment with vCluster URL
+        # This step queries the newly created vCluster LoadBalancer or Ingress, then posts a link in the PR.
+        run: |
+          # Example retrieving LB IP or Ingress:
+          VCLUSTER_IP=$(kubectl get svc -n crossplane-system vcluster-pr${PR_NUMBER}-vcluster \
+                       -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          COMMENT_BODY="Ephemeral environment is up! Access it at http://${VCLUSTER_IP}"
+          curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+               -X POST \
+               -d "{\"body\":\"$COMMENT_BODY\"}" \
+               "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
+
+      # - id: trigger-argocd-appset
+      #   env:
+      #     GH_TOKEN: ${{ github.token }}
+      #   run: |
+      #     gh pr edit ${{ github.event.pull_request.number }} --add-label "preview-cluster-ready"
+
+      # - id: add-pr-link
+      #   uses: marocchino/sticky-pull-request-comment@v2
+      #   with:
+      #     number: ${{ github.event.pull_request.number }}
+      #     header: release
+      #     message: |
+      #       [Preview environment app link](https://${{ env.REPO_NAME}}-pr-${{ github.event.pull_request.number }}-vcluster-pro.us.demo.dev)
             
-            [Argo CD App](https://argocd-vcluster-pro.us.demo.dev/applications/argocd/${{ env.REPO_NAME}}-${{ github.event.pull_request.head.ref }}-pr${{ github.event.pull_request.number }}?view=tree)
+      #       [Argo CD App](https://argocd-vcluster-pro.us.demo.dev/applications/argocd/${{ env.REPO_NAME}}-${{ github.event.pull_request.head.ref }}-pr${{ github.event.pull_request.number }}?view=tree)
             
-            [Preview vcluster pods](https://vcluster-pro.us.demo.dev/projects/api-framework/vclusters/$REPO_NAME-pr-${{ github.event.pull_request.number }}/pods)
+      #       [Preview vcluster pods](https://vcluster-pro.us.demo.dev/projects/api-framework/vclusters/$REPO_NAME-pr-${{ github.event.pull_request.number }}/pods)
             
