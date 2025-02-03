@@ -85,7 +85,6 @@ jobs:
           commit_options: '--no-verify'
           repository: .
           branch: ${{ github.head_ref }}
-          token: ${{ secrets.GHA_TOKEN }}
 
       - name: Post comment with vCluster URL
         # This step queries the newly created vCluster LoadBalancer or Ingress, then posts a link in the PR.
