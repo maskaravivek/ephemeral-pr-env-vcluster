@@ -64,7 +64,7 @@ jobs:
         env:
           GHA_TOKEN: ${{ secrets.MY_PERSONAL_TOKEN }}
         run: |
-          git remote set-url origin https://x-access-token:${REPO_TOKEN}@maskaravivek/ephemeral-pr-env-vcluster.git
+          git remote set-url origin https://x-access-token:${REPO_TOKEN}@github.com/maskaravivek/ephemeral-pr-env-vcluster.git
     
           PR_NUMBER="${{ github.event.number }}"
           cat <<EOF > gitops/ephemeral/ephemeralvcluster-pr${PR_NUMBER}.yaml
