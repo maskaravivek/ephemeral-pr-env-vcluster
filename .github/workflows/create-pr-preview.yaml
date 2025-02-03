@@ -34,7 +34,7 @@ jobs:
       - name: Set up GKE credentials
         uses: google-github-actions/get-gke-credentials@v2
         with:
-          cluster_name: ${{ env.CLUSTER_NAME }}
+          cluster_name: ${{ secrets.CLUSTER_NAME }}
           location: "us-west2"
 
       - name: Install vCluster CLI
