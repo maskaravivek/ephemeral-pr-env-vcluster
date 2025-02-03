@@ -1,0 +1,7 @@
+apiVersion: example.org/v1alpha1
+kind: EphemeralVCluster
+metadata:
+  name: pr2
+spec:
+  prNumber: "2"
+  # add more fields as needed
