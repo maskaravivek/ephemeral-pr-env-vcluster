@@ -27,10 +27,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
-      - name: Configure git
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
+      # - name: Configure git
+      #   run: |
+      #     git config user.name "github-actions"
+      #     git config user.email "actions@github.com"
       # Setup gcloud CLI
       - id: 'auth'
         uses: 'google-github-actions/auth@v2'
