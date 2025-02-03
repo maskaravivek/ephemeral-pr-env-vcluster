@@ -61,8 +61,11 @@ jobs:
             --link "Argo CD=https://34.94.198.226/applications/argocd/${{ env.REPO_NAME}}-${{ github.event.pull_request.head.ref }}-pr${{ github.event.pull_request.number }}?view=tree"
 
       - name: Create Ephemeral Env Resource
+        env:
+          GHA_TOKEN: ${{ secrets.MY_PERSONAL_TOKEN }}
         run: |
-
+          git remote set-url origin https://x-access-token:${REPO_TOKEN}@maskaravivek/ephemeral-pr-env-vcluster.git
+    
           PR_NUMBER="${{ github.event.number }}"
           cat <<EOF > gitops/ephemeral/ephemeralvcluster-pr${PR_NUMBER}.yaml
           apiVersion: example.org/v1alpha1
