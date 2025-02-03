@@ -62,7 +62,7 @@ jobs:
 
       - name: Create Ephemeral Env Resource
         env:
-          GHA_TOKEN: ${{ secrets.MY_PERSONAL_TOKEN }}
+          REPO_TOKEN: ${{ secrets.GHA_TOKEN }}
         run: |
           git remote set-url origin https://x-access-token:${REPO_TOKEN}@github.com/maskaravivek/ephemeral-pr-env-vcluster.git
     
