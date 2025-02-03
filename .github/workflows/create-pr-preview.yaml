@@ -23,6 +23,19 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
+      - name: Set up Google Cloud
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }} 
+          project_id: ${{ secrets.GCP_PROJECT_ID }} 
+
+      # Step 2: Get credentials for your GKE cluster
+      - name: Get GKE Credentials
+        run: |
+          gcloud container clusters get-credentials $CLUSTER_NAME \
+            --region $REGION \
+            --project ${{ secrets.GCP_PROJECT_ID }}
+
       - name: Install vCluster CLI
         uses: loft-sh/setup-vcluster@main
 
