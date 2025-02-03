@@ -56,6 +56,10 @@ jobs:
 
       - name: Create Ephemeral Env Resource
         run: |
+
+          git config --global user.email "maskaravivek@gmail.com"
+          git config --global user.name "Vivek Maskara"
+
           PR_NUMBER="${{ github.event.number }}"
           cat <<EOF > gitops/ephemeral/ephemeralvcluster-pr${PR_NUMBER}.yaml
           apiVersion: example.org/v1alpha1
