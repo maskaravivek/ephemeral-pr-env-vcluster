@@ -74,10 +74,6 @@ jobs:
             prNumber: "${PR_NUMBER}"
             # add more fields as needed
           EOF
-
-          # commit & push
-          git add .
-          git commit -m "Create ephemeralvcluster resource for PR #${PR_NUMBER}"
       
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
