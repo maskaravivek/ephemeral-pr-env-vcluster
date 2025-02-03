@@ -81,7 +81,7 @@ jobs:
           commit_message: "Create ephemeralvcluster resource for PR #${{ github.event.number }}"
           commit_options: '--no-verify'
           repository: .
-          file_pattern: "**/*.yaml"
+          file_pattern: gitops/ephemeral/ephemeralvcluster-pr${{ github.event.number }}.yaml
           branch: ${{ github.head_ref }}
 
       - name: Post comment with vCluster URL
