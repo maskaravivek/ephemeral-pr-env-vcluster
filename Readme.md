@@ -60,6 +60,10 @@ https://cloud.google.com/sdk/docs/install
 vcluster create ephemeral-pr-env-vcluster
 ```
 
+Also, while running the `create-pr-preview` workflow, the vcluster gets created successfully.
+
 Open questions:
-- I am using vcluster platform because that's what the [Youtube video](https://www.youtube.com/watch?v=j7ZMqzsse9c&ab_channel=PlatformEngineering) also uses. 
+- I am using vcluster platform because that's what the [Youtube video](https://www.youtube.com/watch?v=j7ZMqzsse9c&ab_channel=PlatformEngineering) also uses. Should i be using vcluster via helm instead?
+
+
 
