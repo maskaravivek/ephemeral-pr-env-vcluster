@@ -118,23 +118,4 @@ spec:
               string:
                 fmt: "%s-secret"
       readinessChecks:
-        - type: None      
-    - name: conference-chart-vcluster
-      base:
-        apiVersion: helm.crossplane.io/v1beta1
-        kind: Release
-        metadata:
-          annotations: 
-            crossplane.io/external-name: conference
-        spec:
-          forProvider:
-            chart:
-              name: fmtok8s-conference-chart
-              repository: https://salaboy.github.io/helm/
-              version: "v0.1.1"
-            namespace: conference
-          providerConfigRef: 
-            name: #patched
-      patches:
-        - fromFieldPath: metadata.name
-          toFieldPath: spec.providerConfigRef.name
+        - type: None
