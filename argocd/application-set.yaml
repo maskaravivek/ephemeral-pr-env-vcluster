@@ -2,6 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: ephemeral-pr-env-vcluster-preview
+  namespace: argocd
 spec:
   generators:
     - pullRequest:
@@ -10,8 +11,8 @@ spec:
           repo: ephemeral-pr-env-vcluster # (1)
           tokenRef:
             key: token
-            secretName: github-token # (2)
-        requeueAfterSeconds: 60
+            secretName: github-token
+        requeueAfterSeconds: 30
   template:
     metadata:
       name: 'ephemeral-pr-env-vcluster-preview-{{branch}}-{{number}}'
