@@ -3,11 +3,19 @@ kind: Composition
 metadata:
   name: environment.fmtok8s.salaboy.com
 spec:
+  # Crossplane will write the connection secret of the composite itself
+  # (including `connectionDetails` from below) into this namespace.
   writeConnectionSecretsToNamespace: crossplane-system
+
+  # The composite resource this Composition reconciles:
   compositeTypeRef:
     apiVersion: fmtok8s.salaboy.com/v1alpha1
     kind: Environment
+
   resources:
+    # -------------------------------------------------------------
+    # 1) The resource that installs a vcluster via Helm
+    # -------------------------------------------------------------
     - name: vcluster-helm-release
       base:
         apiVersion: helm.crossplane.io/v1beta1
@@ -23,12 +31,18 @@ spec:
               name: vcluster
               repository: https://charts.loft.sh
               version: "0.10.2"
-            values: 
+            values:
               syncer:
                 extraArgs: [] # patched
-              #     - --out-kube-config-server=https://cluster-1.cluster-1.svc
           providerConfigRef:
             name: default
+
+      # Publish the 'kubeconfig' key from the vcluster's connection secret
+      # back to the composite's connection details as 'kubeconfig'.
+      connectionDetails:
+        - name: kubeconfig
+          fromConnectionSecretKey: kubeconfig
+
       patches:
         - fromFieldPath: metadata.name
           toFieldPath: spec.forProvider.namespace
@@ -44,32 +58,40 @@ spec:
             - type: string
               string:
                 fmt: "%s-vcluster"
+
         - type: CombineFromComposite
           combine:
             variables:
-            - fromFieldPath: metadata.name
+              - fromFieldPath: metadata.name
             strategy: string
             string:
               fmt: "--out-kube-config-secret=%s-secret"
           toFieldPath: spec.forProvider.values.syncer.extraArgs[0]
+
         - type: CombineFromComposite
           combine:
             variables:
-            - fromFieldPath: metadata.name
-            - fromFieldPath: metadata.name
+              - fromFieldPath: metadata.name
+              - fromFieldPath: metadata.name
             strategy: string
             string:
               fmt: "--out-kube-config-server=https://%s.%s.svc"
           toFieldPath: spec.forProvider.values.syncer.extraArgs[1]
+
         - type: CombineFromComposite
           combine:
             variables:
-            - fromFieldPath: metadata.name
-            - fromFieldPath: metadata.name
+              - fromFieldPath: metadata.name
+              - fromFieldPath: metadata.name
             strategy: string
             string:
               fmt: "--tls-san=%s.%s.svc"
-          toFieldPath: spec.forProvider.values.syncer.extraArgs[2]    
+          toFieldPath: spec.forProvider.values.syncer.extraArgs[2]
+
+    # -------------------------------------------------------------
+    # 2) The resource that references the root cluster's credentials
+    #    (Helm ProviderConfig). Unchanged from your original.
+    # -------------------------------------------------------------
     - name: helm-providerconfig
       base:
         apiVersion: helm.crossplane.io/v1alpha1
@@ -91,7 +113,12 @@ spec:
         - fromFieldPath: metadata.name
           toFieldPath: spec.credentials.secretRef.namespace
         - fromFieldPath: metadata.uid
-          toFieldPath: metadata.name     
+          toFieldPath: metadata.name
+
+    # -------------------------------------------------------------
+    # 3) The resource that references the newly created vcluster's
+    #    secret (Helm ProviderConfig for the vcluster). Unchanged.
+    # -------------------------------------------------------------
     - name: helm-provider-vcluster
       base:
         apiVersion: helm.crossplane.io/v1beta1
@@ -108,14 +135,47 @@ spec:
         - fromFieldPath: metadata.name
           toFieldPath: spec.credentials.secretRef.namespace
           policy:
-            fromFieldPath: Required  
-        # This ProviderConfig uses the above VCluster's connection secret as
-        # its credentials secret.
+            fromFieldPath: Required
         - fromFieldPath: "metadata.name"
           toFieldPath: spec.credentials.secretRef.name
           transforms:
             - type: string
               string:
                 fmt: "%s-secret"
+      readinessChecks:
+        - type: None
+
+    # -------------------------------------------------------------
+    # 4) (NEW) The resource that registers the vcluster in Argo CD
+    # -------------------------------------------------------------
+    - name: argo-registration-secret
+      base:
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          namespace: argocd
+          labels:
+            # This label tells Argo CD to treat the Secret as a cluster
+            argocd.argoproj.io/secret-type: cluster
+        type: Opaque
+      patches:
+        # Give the Argo CD secret a unique name (e.g. "<envName>-argocd-cluster")
+        - fromFieldPath: "metadata.name"
+          toFieldPath: "metadata.name"
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-argocd-cluster"
+
+        # Patch the published kubeconfig from the composite (Environment)
+        # into `data.config`. The "connectionDetails.kubeconfig" value
+        # matches the name we used in connectionDetails above.
+        - fromFieldPath: "connectionDetails.kubeconfig"
+          toFieldPath: "data.config"
+          policy:
+            fromFieldPath: Required
+
+      # Usually, we don't need to wait for anything here since we just
+      # want the Secret created. So we skip or set readiness to None.
       readinessChecks:
         - type: None
