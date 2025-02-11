@@ -119,22 +119,27 @@ spec:
                 fmt: "%s-secret"
       readinessChecks:
         - type: None      
-    - name: conference-chart-vcluster
+    - name: preview-go-app-template-vcluster
       base:
         apiVersion: helm.crossplane.io/v1beta1
         kind: Release
         metadata:
           annotations: 
-            crossplane.io/external-name: conference
+            crossplane.io/external-name: go-app
         spec:
           forProvider:
             chart:
-              name: fmtok8s-conference-chart
-              repository: https://salaboy.github.io/helm/
-              version: "v0.1.1"
-            namespace: conference
+              name: preview-go-app-template
+            repoURL: "https://github.com/maskaravivek/ephemeral-pr-env-vcluster"
+            targetRevision: HEAD
+            path: preview/
+            namespace: go-app
           providerConfigRef: 
             name: #patched
       patches:
         - fromFieldPath: metadata.name
           toFieldPath: spec.providerConfigRef.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-secret"
