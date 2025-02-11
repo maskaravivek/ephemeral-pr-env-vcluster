@@ -18,7 +18,7 @@ var addr = pflag.String("addr", ":8080", "address to listen on (default :8080)")
 func main() {
 	pflag.Parse()
 	if *text == "" {
-		log.Fatal("--text option is required!")
+		log.Fatal("--text option is required param!")
 	}
 
 	r := gin.Default()
