@@ -130,9 +130,10 @@ spec:
           forProvider:
             chart:
               name: preview-go-app-template
-            repoURL: "https://github.com/maskaravivek/ephemeral-pr-env-vcluster"
-            targetRevision: HEAD
-            path: preview/
+            source:
+              repoURL: "https://github.com/maskaravivek/ephemeral-pr-env-vcluster"
+              targetRevision: HEAD
+              path: preview/
             namespace: go-app
           providerConfigRef: 
             name: #patched
