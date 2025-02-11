@@ -12,8 +12,8 @@ import (
 	"time"
 )
 
-var text = pflag.String("text", "", "text to put on the webpage")
-var addr = pflag.String("addr", ":8080", "address to listen on")
+var text = pflag.String("text", "", "text to put on the webpage (required)")
+var addr = pflag.String("addr", ":8080", "address to listen on (default :8080)")
 
 func main() {
 	pflag.Parse()
