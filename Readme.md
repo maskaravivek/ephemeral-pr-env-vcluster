@@ -23,6 +23,12 @@ kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}
 argocd admin initial-password -n argocd
 ```
 
+ArgoCD application set
+
+```
+kubectl apply -n argocd -f application-set.yaml
+```
+
 ## Crossplane
 
 Install crossplane on the cluster:
@@ -60,30 +66,4 @@ kubectl apply -f crossplane/environment-resource.yaml
 
 ```
 vcluster list
-```
-
-## Vcluster
-
-1. Install Vcluster CLI: https://www.vcluster.com/docs/v0.19/getting-started/setup
-
-2. Sign up for Vcluster Cloud (ie. vcluster Platform): https://www.vcluster.com/install and create a new vcluster Platform instance
-
-3. Create a vcluster access key using Profile > Access key. Keep it handy
-
-4. using the CLI, login to Vcluster platform:
-
-```
-vcluster platform login https://ephemeral-pr-vcluster.vcluster.cloud/ --access-key <YOUR_ACCESS_KEY>
-```
-
-5. Connect your host cluster (GKE cluster) with the vcluster platform:
-
-```
-https://cloud.google.com/sdk/docs/install
-```
-
-6. Create a test vcluster using the CLI:
-
-```
-vcluster create ephemeral-pr-env-vcluster
 ```
