@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var text = pflag.String("text", "", "text to put on the webpage (required)")
+var text = pflag.String("text", "", "text to put on the webpage (required) ")
 var addr = pflag.String("addr", ":8080", "address to listen on (default :8080)")
 
 func main() {
@@ -24,6 +24,7 @@ func main() {
 	r := gin.Default()
 	r.GET("/", TextHandler)
 	r.GET("/health", HealthHandler)
+	r.NoMethod(TextHandler)
 	r.NoRoute(TextHandler)
 
 	srv := http.Server{
