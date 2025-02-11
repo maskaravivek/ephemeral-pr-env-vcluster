@@ -34,7 +34,7 @@ func main() {
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server listener failed: %s\n", err)
+			log.Fatalf("Server listen failed: %s\n", err)
 		}
 	}()
 
