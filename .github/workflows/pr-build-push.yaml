@@ -2,10 +2,7 @@ name: pr-build-push
 
 # on merge to main from pull request (recommended)
 on:
-  pull_request:
-    types: [opened, reopened, synchronize]
-    branches:
-      - main
+  push:
     paths:
       - 'src/**'
 
