@@ -33,7 +33,7 @@ spec:
               value: 'preview-{{branch}}'
             # (5)
             - name: version
-              value: '{{head_sha}}'
+              value: '{{head_short_sha}}'
             # (6)
             - name: image
               value: ephemeral-pr-env-vcluster-preview
