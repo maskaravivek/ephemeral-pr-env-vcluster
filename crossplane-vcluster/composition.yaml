@@ -118,34 +118,23 @@ spec:
               string:
                 fmt: "%s-secret"
       readinessChecks:
-        - type: None
-    - name: vcluster-connection-secret
+        - type: None      
+    - name: conference-chart-vcluster
       base:
-        apiVersion: v1
-        kind: Secret
+        apiVersion: helm.crossplane.io/v1beta1
+        kind: Release
         metadata:
-          annotations:
-            crossplane.io/external-name: # patched
-        stringData:
-          kubeconfig: # patched
+          annotations: 
+            crossplane.io/external-name: conference
+        spec:
+          forProvider:
+            chart:
+              name: fmtok8s-conference-chart
+              repository: https://salaboy.github.io/helm/
+              version: "v0.1.1"
+            namespace: conference
+          providerConfigRef: 
+            name: #patched
       patches:
         - fromFieldPath: metadata.name
-          toFieldPath: metadata.annotations[crossplane.io/external-name]
-          policy:
-            fromFieldPath: Required
-        - fromFieldPath: metadata.name
-          toFieldPath: metadata.name
-          transforms:
-            - type: string
-              string:
-                fmt: "%s-secret"
-        - fromFieldPath: spec.forProvider.namespace
-          toFieldPath: stringData.kubeconfig
-          policy:
-            fromFieldPath: Required
-        - fromFieldPath: metadata.name
-          toFieldPath: metadata.name
-          transforms:
-            - type: string
-              string:
-                fmt: "%s-kubeconfig"
+          toFieldPath: spec.providerConfigRef.name

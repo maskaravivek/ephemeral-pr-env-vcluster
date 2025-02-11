@@ -54,7 +54,7 @@ func main() {
 
 func HealthHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
-		"status": "OK",
+		"status": "OKAY",
 		"version": "1.0.0",
 		"uptime": time.Since(time.Now()),
 	})
