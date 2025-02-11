@@ -1,14 +1,11 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
-  name: vcluster.example.com
-  labels:
-    type: development
-    provider: vcluster
+  name: environment.fmtok8s.salaboy.com
 spec:
   writeConnectionSecretsToNamespace: crossplane-system
   compositeTypeRef:
-    apiVersion: example.com/v1alpha1
+    apiVersion: fmtok8s.salaboy.com/v1alpha1
     kind: Environment
   resources:
     - name: vcluster-helm-release
@@ -26,7 +23,7 @@ spec:
               name: vcluster
               repository: https://charts.loft.sh
               version: "0.10.2"
-            values:
+            values: 
               syncer:
                 extraArgs: [] # patched
               #     - --out-kube-config-server=https://cluster-1.cluster-1.svc
@@ -72,11 +69,7 @@ spec:
             strategy: string
             string:
               fmt: "--tls-san=%s.%s.svc"
-          toFieldPath: spec.forProvider.values.syncer.extraArgs[2]           
-      readinessChecks:
-      - type: MatchString
-        fieldPath: status.atProvider.state
-        matchString: deployed
+          toFieldPath: spec.forProvider.values.syncer.extraArgs[2]    
     - name: helm-providerconfig
       base:
         apiVersion: helm.crossplane.io/v1alpha1
@@ -97,7 +90,51 @@ spec:
                 fmt: vc-%s
         - fromFieldPath: metadata.name
           toFieldPath: spec.credentials.secretRef.namespace
+        - fromFieldPath: metadata.uid
+          toFieldPath: metadata.name     
+    - name: helm-provider-vcluster
+      base:
+        apiVersion: helm.crossplane.io/v1beta1
+        kind: ProviderConfig
+        spec:
+          credentials:
+            source: Secret
+            secretRef:
+              namespace: #patched
+              key: config
+      patches:
         - fromFieldPath: metadata.name
           toFieldPath: metadata.name
+        - fromFieldPath: metadata.name
+          toFieldPath: spec.credentials.secretRef.namespace
+          policy:
+            fromFieldPath: Required  
+        # This ProviderConfig uses the above VCluster's connection secret as
+        # its credentials secret.
+        - fromFieldPath: "metadata.name"
+          toFieldPath: spec.credentials.secretRef.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-secret"
       readinessChecks:
-      - type: None
+        - type: None      
+    - name: conference-chart-vcluster
+      base:
+        apiVersion: helm.crossplane.io/v1beta1
+        kind: Release
+        metadata:
+          annotations: 
+            crossplane.io/external-name: conference
+        spec:
+          forProvider:
+            chart:
+              name: fmtok8s-conference-chart
+              repository: https://salaboy.github.io/helm/
+              version: "v0.1.1"
+            namespace: conference
+          providerConfigRef: 
+            name: #patched
+      patches:
+        - fromFieldPath: metadata.name
+          toFieldPath: spec.providerConfigRef.name

@@ -15,6 +15,14 @@ kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
+```
+kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+```
+
+```
+argocd admin initial-password -n argocd
+```
+
 ## Crossplane
 
 Install crossplane on the cluster:
@@ -27,12 +35,32 @@ helm repo update
 helm install crossplane \
   crossplane-stable/crossplane \
   --namespace crossplane-system \
-  --create-namespace
+  --create-namespace \
+  --set "provider.packages[0]=xpkg.upbound.io/upbound/provider-helm:v0.20.3" \
+  --set "provider.packages[1]=xpkg.upbound.io/upbound/provider-kubernetes:v0.16.2"
 ```
 
-I also followed the steps to configure secrets, provider etc. based on this guide (not sure if all steps are actually needed): https://docs.crossplane.io/latest/getting-started/provider-gcp/
+```
+kubectl get pods -n crossplane-system
+kubectl get providers
+kubectl -n crossplane-system get sa -o name
+```
 
-Also, install crossplane CLI: https://docs.crossplane.io/latest/cli/
+```
+SA=$(kubectl -n crossplane-system get sa -o name | grep provider-helm | sed -e 's|serviceaccount\/|crossplane-system:|g')
+kubectl create clusterrolebinding provider-helm-admin-binding --clusterrole cluster-admin --serviceaccount="${SA}"
+```
+
+```
+kubectl apply -f crossplane/helm-provider-config.yaml
+kubectl apply -f crossplane/composition.yaml
+kubectl apply -f crossplane/environment-resource-definition.yaml
+kubectl apply -f crossplane/environment-resource.yaml
+```
+
+```
+vcluster list
+```
 
 ## Vcluster
 
@@ -59,11 +87,3 @@ https://cloud.google.com/sdk/docs/install
 ```
 vcluster create ephemeral-pr-env-vcluster
 ```
-
-Also, while running the `create-pr-preview` workflow, the vcluster gets created successfully.
-
-Open questions:
-- I am using vcluster platform because that's what the [Youtube video](https://www.youtube.com/watch?v=j7ZMqzsse9c&ab_channel=PlatformEngineering) also uses. Should i be using vcluster via helm instead?
-
-
-

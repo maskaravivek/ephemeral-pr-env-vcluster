@@ -1,6 +1,0 @@
-apiVersion: example.org/v1alpha1
-kind: EphemeralVCluster
-metadata:
-  name: pr${PR_NUMBER}
-spec:
-  prNumber: "${PR_NUMBER}"

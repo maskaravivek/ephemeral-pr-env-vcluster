@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: ephemeral-pr-env-vcluster-preview
+spec:
+  generators:
+    - pullRequest:
+        github:
+          owner: maskaravivek
+          repo: ephemeral-pr-env-vcluster # (1)
+          tokenRef:
+            key: token
+            secretName: github-token # (2)
+        requeueAfterSeconds: 60
+  template:
+    metadata:
+      name: 'ephemeral-pr-env-vcluster-preview-{{branch}}-{{number}}'
+    spec:
+      destination:
+        namespace: 'preview-{{branch}}'
+        server: 'https://kubernetes.default.svc'
+      project: default
+      source:
+        # (3)
+        path: preview/
+        repoURL: 'https://github.com/maskaravivek/ephemeral-pr-env-vcluster'
+        targetRevision: HEAD
+        helm:
+          parameters:
+            # (4)
+            - name: namespace
+              value: 'preview-{{branch}}'
+            # (5)
+            - name: version
+              value: '{{head_sha}}'
+            # (6)
+            - name: image
+              value: ephemeral-pr-env-vcluster-preview
+            - name: name
+              value: go-app
+      # (7)
+      syncPolicy:
+        automated:
+          selfHeal: true
