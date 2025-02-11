@@ -36,7 +36,7 @@ spec:
               value: '{{head_short_sha}}'
             # (6)
             - name: image
-              value: ephemeral-pr-env-vcluster-preview
+              value: ephemeral-pr-env-vcluster
             - name: name
               value: go-app
       # (7)
