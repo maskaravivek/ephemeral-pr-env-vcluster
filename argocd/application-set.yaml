@@ -15,31 +15,27 @@ spec:
         requeueAfterSeconds: 30
   template:
     metadata:
-      name: 'ephemeral-pr-env-vcluster-preview-{{branch}}-{{number}}'
+      # This is the name of the Argo CD "Application" created for each PR
+      name: 'env-{{ branch }}-{{ number }}'
     spec:
-      destination:
-        namespace: 'preview-{{branch}}'
-        server: 'https://kubernetes.default.svc'
       project: default
+      destination:
+        namespace: crossplane-system
+        server: 'https://kubernetes.default.svc'
       source:
-        # (3)
-        path: preview/
         repoURL: 'https://github.com/maskaravivek/ephemeral-pr-env-vcluster'
         targetRevision: HEAD
+        # We assume there's a minimal Helm chart under "crossplane/" that defines the Environment.
+        # If using Kustomize or plain YAML, adjust accordingly.
+        path: preview-crossplane/
         helm:
+          # Optional: If you have a values.yaml or need to pass parameters
+          valueFiles:
+            - values.yaml
           parameters:
-            # (4)
-            - name: namespace
-              value: 'preview-{{branch}}'
-            # (5)
-            - name: version
-              value: '{{head_short_sha}}'
-            # (6)
-            - name: image
-              value: ephemeral-pr-env-vcluster
-            - name: name
-              value: go-app
-      # (7)
+            - name: environmentName
+              value: 'env-{{ number }}'
       syncPolicy:
         automated:
           selfHeal: true
+          prune: true

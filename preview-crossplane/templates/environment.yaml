@@ -1,0 +1,6 @@
+apiVersion: fmtok8s.salaboy.com/v1alpha1
+kind: Environment
+metadata:
+  # This picks up the parameter from the ApplicationSet
+  name: {{ .Values.environmentName | quote }}
+spec: {}
