@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  preview-go-app-template:
+  - apiVersion: v2
+    appVersion: "1.0"
+    created: "2025-02-11T22:52:57.70985-08:00"
+    description: A Helm chart for Kubernetes
+    digest: 5ae4f2ce34617a7be077ae77b46b5479dcea381f3d4c98ad5fefeffae20bc124
+    name: preview-go-app-template
+    type: application
+    urls:
+    - https://go-app-preview-app.storage.googleapis.com/preview-go-app-template-1.0.0.tgz
+    version: 1.0.0
+generated: "2025-02-11T22:52:57.709651-08:00"

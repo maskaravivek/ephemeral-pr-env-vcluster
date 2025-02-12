@@ -119,28 +119,22 @@ spec:
                 fmt: "%s-secret"
       readinessChecks:
         - type: None      
-    - name: preview-go-app-template-vcluster
+    - name: go-app-preview-app
       base:
         apiVersion: helm.crossplane.io/v1beta1
         kind: Release
         metadata:
           annotations: 
-            crossplane.io/external-name: go-app
+            crossplane.io/external-name: preview
         spec:
           forProvider:
             chart:
-              name: preview-go-app-template
-            source:
-              repoURL: "https://github.com/maskaravivek/ephemeral-pr-env-vcluster"
-              targetRevision: HEAD
-              path: preview/
-            namespace: go-app
+              name: go-app-preview-app
+              repository: https://go-app-helm-chart.storage.googleapis.com/
+              version: "v1.0.0"
+            namespace: preview
           providerConfigRef: 
             name: #patched
       patches:
         - fromFieldPath: metadata.name
           toFieldPath: spec.providerConfigRef.name
-          transforms:
-            - type: string
-              string:
-                fmt: "%s-secret"
