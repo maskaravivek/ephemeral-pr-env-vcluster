@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: env-15
+  name: {{ .Values.name }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: env-15
+      app: {{ .Values.name }}
   template:
     metadata:
       labels:
-        app: env-15
+        app: {{ .Values.name }}
     spec:
       containers:
-      - name: env-15
+      - name: {{ .Values.name }}
         image: ghcr.io/maskaravivek/ephemeral-pr-env-vcluster:dfd926e9
         resources:
           requests:
