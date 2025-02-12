@@ -49,7 +49,7 @@ func main() {
 		log.Fatalf("Server forced to shutdown: %s\n", err)
 	}
 
-	log.Println("Server exiting. Goodbye!")
+	log.Println("Server exiting. Goodbye!!")
 }
 
 func HealthHandler(c *gin.Context) {
