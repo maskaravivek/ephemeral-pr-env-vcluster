@@ -3,12 +3,12 @@ entries:
   go-app-helm-chart:
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2025-02-12T00:15:28.10521-08:00"
+    created: "2025-02-12T00:21:24.956301-08:00"
     description: A Helm chart for Kubernetes
-    digest: b0478baaa8c8665ad25c0436ebd2bc325b07f9d3d818947346923668ebcecbed
+    digest: 16efa4006aa95378d43bbee7c4a27feef91d8f98e120e1b8d60dbe4e49581beb
     name: go-app-helm-chart
     type: application
     urls:
-    - https://go-app-helm-chart.storage.googleapis.com/go-app-helm-chart-1.1.0.tgz
-    version: 1.1.0
-generated: "2025-02-12T00:15:28.105012-08:00"
+    - https://go-app-helm-chart.storage.googleapis.com/go-app-helm-chart-1.2.0.tgz
+    version: 1.2.0
+generated: "2025-02-12T00:21:24.956093-08:00"

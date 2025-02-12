@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.name }}
+  name: "go-app"
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.name }}
+      app: "go-app"
   template:
     metadata:
       labels:
-        app: {{ .Values.name }}
+        app: "go-app"
     spec:
       containers:
-      - name: {{ .Values.name }}
+      - name: "go-app"
         image: ghcr.io/maskaravivek/ephemeral-pr-env-vcluster:dfd926e9
         resources:
           requests:
