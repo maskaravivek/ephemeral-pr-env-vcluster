@@ -119,7 +119,7 @@ spec:
                 fmt: "%s-secret"
       readinessChecks:
         - type: None      
-    - name: go-app-preview-app
+    - name: go-app-helm-chart
       base:
         apiVersion: helm.crossplane.io/v1beta1
         kind: Release
@@ -129,9 +129,9 @@ spec:
         spec:
           forProvider:
             chart:
-              name: go-app-preview-app
+              name: go-app-helm-chart
               repository: https://go-app-helm-chart.storage.googleapis.com/
-              version: "v1.0.0"
+              version: "1.0.0"
             namespace: preview
           providerConfigRef: 
             name: #patched
