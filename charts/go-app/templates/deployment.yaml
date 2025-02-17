@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: "go-app"
-        image: ghcr.io/maskaravivek/ephemeral-pr-env-vcluster:dfd926e9
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         resources:
           requests:
             memory: "128Mi"

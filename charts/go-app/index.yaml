@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  go-app-helm-chart:
+  - apiVersion: v2
+    appVersion: "1.0"
+    created: "2025-02-16T21:51:04.474245-08:00"
+    description: A Helm chart for Kubernetes
+    digest: 37db2402c8393cb061d24ec3d7aac0cc4bfbc6c57e5a98d0cc6c3b63031be190
+    name: go-app-helm-chart
+    type: application
+    urls:
+    - https://maskaravivek.github.io/ephemeral-pr-env-vcluster/helm/go-app-helm-chart-1.3.0.tgz
+    version: 1.3.0
+generated: "2025-02-16T21:51:04.474057-08:00"

@@ -1,0 +1,3 @@
+image:
+  repository: ghcr.io/maskaravivek/ephemeral-pr-env-vcluster
+  tag: latest  # Default tag; Crossplane will override this with a SHA
