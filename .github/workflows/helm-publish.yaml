@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Set up Helm
         uses: azure/setup-helm@v3
@@ -26,7 +28,7 @@ jobs:
 
       - name: Deploy to GitHub Pages
         run: |
-          git config --global user.email "your-email@example.com"
+          git config --global user.email "maskaravivek@gmail.com"
           git config --global user.name "GitHub Actions"
           git checkout gh-pages
           mv go-app-*.tgz helm/
