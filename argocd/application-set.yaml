@@ -8,14 +8,16 @@ spec:
     - pullRequest:
         github:
           owner: maskaravivek
-          repo: ephemeral-pr-env-vcluster # (1)
+          repo: ephemeral-pr-env-vcluster
           tokenRef:
             key: token
             secretName: github-token
+          # Labels to filter PRs
+          labels:
+          - preview
         requeueAfterSeconds: 30
   template:
     metadata:
-      # This is the name of the Argo CD "Application" created for each PR
       name: 'env-{{ branch }}-{{ number }}'
     spec:
       project: default
@@ -25,16 +27,15 @@ spec:
       source:
         repoURL: 'https://github.com/maskaravivek/ephemeral-pr-env-vcluster'
         targetRevision: HEAD
-        # We assume there's a minimal Helm chart under "crossplane/" that defines the Environment.
-        # If using Kustomize or plain YAML, adjust accordingly.
         path: preview-crossplane/
         helm:
-          # Optional: If you have a values.yaml or need to pass parameters
           valueFiles:
             - values.yaml
           parameters:
             - name: environmentName
               value: 'env-{{ number }}'
+            - name: imageTag
+              value: '{{ head_short_sha }}'
       syncPolicy:
         automated:
           selfHeal: true

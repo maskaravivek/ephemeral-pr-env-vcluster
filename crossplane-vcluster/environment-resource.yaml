@@ -1,4 +1,4 @@
-apiVersion: fmtok8s.salaboy.com/v1alpha1
+apiVersion: maskaravivek.com.com/v1alpha1
 kind: Environment
 metadata:
   name: dev-environment

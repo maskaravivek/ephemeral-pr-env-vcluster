@@ -1,9 +1,9 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: CompositeResourceDefinition
 metadata:
-  name: environments.fmtok8s.salaboy.com
+  name: environments.maskaravivek.com.com
 spec:
-  group: fmtok8s.salaboy.com
+  group: maskaravivek.com
   names:
     kind: Environment
     plural: environments

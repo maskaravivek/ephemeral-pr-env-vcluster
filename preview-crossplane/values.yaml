@@ -1,1 +1,2 @@
 environmentName: "default-environment"
+imageTag: "latest"  # This will be overridden dynamically
