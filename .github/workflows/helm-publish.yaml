@@ -1,0 +1,36 @@
+name: Publish Helm Charts
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "charts/go-app/**"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.9.0
+
+      - name: Package Helm chart
+        run: |
+          helm package charts/go-app
+          helm repo index . --url https://maskaravivek.github.io/ephemeral-pr-env-vcluster/helm
+
+      - name: Deploy to GitHub Pages
+        run: |
+          git config --global user.email "your-email@example.com"
+          git config --global user.name "GitHub Actions"
+          git checkout gh-pages
+          mv go-app-*.tgz helm/
+          mv index.yaml helm/
+          git add helm/
+          git commit -m "Update Helm chart"
+          git push origin gh-pages
