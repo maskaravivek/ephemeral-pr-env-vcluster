@@ -58,6 +58,7 @@ func HealthHandler(c *gin.Context) {
 		"version": "1.0.0",
 		"timestamp": time.Now().Unix(),
 		"uptime": time.Since(time.Now()),
+		"message": "I'm alive!",
 	})
 }
 
