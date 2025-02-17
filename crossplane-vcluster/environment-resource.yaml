@@ -1,5 +1,8 @@
-apiVersion: maskaravivek.com.com/v1alpha1
+apiVersion: fmtok8s.salaboy.com/v1alpha1
 kind: Environment
 metadata:
   name: dev-environment
-spec: {}
+spec:
+  values:
+    image:
+      tag: "e8800328"

@@ -1,9 +1,9 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: CompositeResourceDefinition
 metadata:
-  name: environments.maskaravivek.com.com
+  name: environments.fmtok8s.salaboy.com
 spec:
-  group: maskaravivek.com
+  group: fmtok8s.salaboy.com
   names:
     kind: Environment
     plural: environments
@@ -20,4 +20,7 @@ spec:
         properties:
           spec:
             type: object
-            properties: {}
+            properties:
+              values:
+                type: object
+                x-kubernetes-preserve-unknown-fields: true  # Allows dynamic key-value pairs

@@ -1,11 +1,11 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
-  name: environment.maskaravivek.com
+  name: environment.fmtok8s.salaboy.com
 spec:
   writeConnectionSecretsToNamespace: crossplane-system
   compositeTypeRef:
-    apiVersion: maskaravivek.com/v1alpha1
+    apiVersion: fmtok8s.salaboy.com/v1alpha1
     kind: Environment
   resources:
     - name: vcluster-helm-release
@@ -26,6 +26,7 @@ spec:
             values: 
               syncer:
                 extraArgs: [] # patched
+              #     - --out-kube-config-server=https://cluster-1.cluster-1.svc
           providerConfigRef:
             name: default
       patches:
@@ -117,7 +118,7 @@ spec:
               string:
                 fmt: "%s-secret"
       readinessChecks:
-        - type: None      
+        - type: None
     - name: go-app-helm-chart
       base:
         apiVersion: helm.crossplane.io/v1beta1
@@ -129,7 +130,7 @@ spec:
           forProvider:
             chart:
               name: go-app-helm-chart
-              repository: https://go-app-helm-chart.storage.googleapis.com/
+              repository: https://maskaravivek.github.io/ephemeral-pr-env-vcluster/helm
               version: "1.3.0"
             namespace: preview
             values:

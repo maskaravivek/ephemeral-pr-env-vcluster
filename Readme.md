@@ -26,7 +26,7 @@ argocd admin initial-password -n argocd
 ArgoCD application set
 
 ```
-kubectl apply -n argocd -f application-set.yaml
+kubectl apply -n argocd -f argocd/application-set.yaml
 ```
 
 ## Crossplane
@@ -58,10 +58,10 @@ kubectl create clusterrolebinding provider-helm-admin-binding --clusterrole clus
 ```
 
 ```
-kubectl apply -f crossplane/helm-provider-config.yaml
-kubectl apply -f crossplane/composition.yaml
-kubectl apply -f crossplane/environment-resource-definition.yaml
-kubectl apply -f crossplane/environment-resource.yaml
+kubectl apply -f crossplane-vcluster/helm-provider-config.yaml
+kubectl apply -f crossplane-vcluster/composition.yaml
+kubectl apply -f crossplane-vcluster/environment-resource-definition.yaml
+kubectl apply -f crossplane-vcluster/environment-resource.yaml
 ```
 
 ```
