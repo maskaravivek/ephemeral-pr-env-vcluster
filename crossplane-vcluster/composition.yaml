@@ -131,7 +131,7 @@ spec:
             chart:
               name: go-app-helm-chart
               repository: https://maskaravivek.github.io/ephemeral-pr-env-vcluster/helm
-              version: "1.3.0"
+              version: "1.4.0"
             namespace: preview
             values:
             image:
