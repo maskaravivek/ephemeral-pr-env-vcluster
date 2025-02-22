@@ -1,11 +1,11 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
-  name: environment.fmtok8s.salaboy.com
+  name: environment.maskaravivek.com
 spec:
   writeConnectionSecretsToNamespace: crossplane-system
   compositeTypeRef:
-    apiVersion: fmtok8s.salaboy.com/v1alpha1
+    apiVersion: maskaravivek.com/v1alpha1
     kind: Environment
   resources:
     - name: vcluster-helm-release
