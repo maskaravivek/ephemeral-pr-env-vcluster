@@ -141,3 +141,5 @@ spec:
       patches:
         - fromFieldPath: metadata.name
           toFieldPath: spec.providerConfigRef.name
+        - fromFieldPath: spec.values.image.tag
+          toFieldPath: spec.forProvider.values.image.tag

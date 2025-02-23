@@ -54,11 +54,10 @@ func main() {
 
 func HealthHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
-		"status": "OKAY!!",
+		"status": "OK!",
 		"version": "1.0.0",
 		"timestamp": time.Now().Unix(),
 		"uptime": time.Since(time.Now()),
-		"message": "I'm alive!",
 	})
 }
 
