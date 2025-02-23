@@ -1,0 +1,8 @@
+apiVersion: maskaravivek.com/v1alpha1
+kind: Environment
+metadata:
+  name: {{ .Values.environmentName | quote }}
+spec:
+  values:
+    image:
+      tag: {{ .Values.imageTag | quote }}

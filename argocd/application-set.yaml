@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: ephemeral-pr-env-vcluster-preview
+  namespace: argocd
+spec:
+  generators:
+    - pullRequest:
+        github:
+          owner: maskaravivek
+          repo: ephemeral-pr-env-vcluster
+          tokenRef:
+            key: token
+            secretName: github-token
+          # Labels to filter PRs
+          labels:
+          - preview
+        requeueAfterSeconds: 30
+  template:
+    metadata:
+      name: 'env-{{ branch }}-{{ number }}'
+    spec:
+      project: default
+      destination:
+        namespace: crossplane-system
+        server: 'https://kubernetes.default.svc'
+      source:
+        repoURL: 'https://github.com/maskaravivek/ephemeral-pr-env-vcluster'
+        targetRevision: HEAD
+        path: preview-crossplane/
+        helm:
+          valueFiles:
+            - values.yaml
+          parameters:
+            - name: environmentName
+              value: 'env-{{ number }}'
+            - name: imageTag
+              value: '{{ head_short_sha }}'
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: true
